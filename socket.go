@@ -4,9 +4,9 @@
 package zerorpc
 
 import (
-	zmq "github.com/pebbe/zmq4"
-	"log"
 	"sync"
+
+	zmq "github.com/pebbe/zmq4"
 )
 
 // ZeroRPC socket representation
@@ -36,8 +36,6 @@ func connect(endpoint string) (*socket, error) {
 		return nil, err
 	}
 
-	log.Printf("ZeroRPC socket connected to %s", endpoint)
-
 	go s.listen()
 
 	return &s, nil
@@ -60,8 +58,6 @@ func bind(endpoint string) (*socket, error) {
 		return nil, err
 	}
 
-	log.Printf("ZeroRPC socket bound to %s", endpoint)
-
 	go s.listen()
 
 	return &s, nil
@@ -75,7 +71,6 @@ func (s *socket) close() error {
 		s.removeChannel(c)
 	}
 
-	log.Printf("ZeroRPC socket closed")
 	return s.zmqSocket.Close()
 }
 
@@ -102,21 +97,15 @@ func (s *socket) sendEvent(e *Event, identity string) error {
 		return err
 	}
 
-	log.Printf("ZeroRPC socket sent event %s", e.Header["message_id"].(string))
-
-	i, err := s.zmqSocket.SendMessage(identity, "", b)
+	_, err = s.zmqSocket.SendMessage(identity, "", b)
 	if err != nil {
 		return err
 	}
-
-	log.Printf("ZeroRPC socket sent %d bytes", i)
 
 	return nil
 }
 
 func (s *socket) listen() {
-	log.Printf("ZeroRPC socket listening for incoming data")
-
 	for {
 		barr, err := s.zmqSocket.RecvMessageBytes(0)
 		if err != nil {
@@ -128,14 +117,10 @@ func (s *socket) listen() {
 			t += len(k)
 		}
 
-		log.Printf("ZeroRPC socket received %d bytes", t)
-
 		ev, err := unPackBytes(barr[len(barr)-1])
 		if err != nil {
 			s.socketErrors <- err
 		}
-
-		log.Printf("ZeroRPC socket recieved event %s", ev.Header["message_id"].(string))
 
 		var ch *channel
 		if _, ok := ev.Header["response_to"]; !ok {
@@ -154,8 +139,6 @@ func (s *socket) listen() {
 		}
 
 		if ch != nil && ch.state == open {
-			log.Printf("ZeroRPC socket routing event %s to channel %s", ev.Header["message_id"].(string), ch.Id)
-
 			ch.socketInput <- ev
 		}
 	}

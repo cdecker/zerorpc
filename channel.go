@@ -66,8 +66,6 @@ func (s *socket) newChannel(id string) *channel {
 
 	s.Channels = append(s.Channels, &c)
 
-	log.Printf("ZeroRPC socket created new channel %s", c.Id)
-
 	return &c
 }
 
@@ -89,7 +87,6 @@ func (ch *channel) close() {
 	close(ch.channelOutput)
 	close(ch.channelErrors)
 
-	log.Printf("Channel %s closed", ch.Id)
 }
 
 // Sends an event on the channel,
@@ -110,8 +107,6 @@ func (ch *channel) sendEvent(e *Event) error {
 
 		go ch.sendHeartbeats()
 	}
-
-	log.Printf("Channel %s sending event %s", ch.Id, e.Header["message_id"].(string))
 
 	identity := ch.identity
 
@@ -155,7 +150,6 @@ func (ch *channel) sendHeartbeats() {
 			return
 		}
 
-		log.Printf("Channel %s sent heartbeat", ch.Id)
 	}
 }
 
@@ -202,7 +196,6 @@ func (ch *channel) listen() {
 			streamCounter = 0
 
 		case "_zpc_hb":
-			log.Printf("Channel %s received heartbeat", ch.Id)
 			ch.lastHeartbeat = time.Now()
 
 		default:
@@ -210,7 +203,6 @@ func (ch *channel) listen() {
 				continue
 			}
 
-			log.Printf("Channel %s handling task %s with args %s", ch.Id, ev.Name, ev.Args)
 			go func(ch *channel, ev *Event) {
 				defer ch.close()
 				defer ch.socket.removeChannel(ch)

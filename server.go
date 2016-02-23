@@ -92,8 +92,6 @@ func (s *Server) RegisterTask(name string, handlerFunc *func(args []interface{})
 
 	s.handlers = append(s.handlers, &taskHandler{TaskName: name, HandlerFunc: handlerFunc})
 
-	log.Printf("ZeroRPC server registered handler for task %s", name)
-
 	return nil
 }
 
@@ -102,8 +100,6 @@ func (s *Server) RegisterTask(name string, handlerFunc *func(args []interface{})
 func (s *Server) handleTask(ev *Event) (interface{}, error) {
 	for _, h := range s.handlers {
 		if h.TaskName == ev.Name {
-			log.Printf("ZeroRPC server handling task %s with args %s", ev.Name, ev.Args)
-
 			return (*h.HandlerFunc)(ev.Args)
 		}
 	}
